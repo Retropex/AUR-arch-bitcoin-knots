@@ -1,0 +1,38 @@
+# Maintainer: Léo Haf <leo@haf.ovh>
+pkgname=bitcoin-knots
+pkgver=29.2.knots20251110
+pkgrel=1
+epoch=
+pkgdesc="enhanced Bitcoin node/wallet software"
+arch=(x86_64)
+url="https://bitcoinknots.org"
+license=('MIT')
+groups=(bitcoin)
+depends=()
+makedepends=('boost' 'cmake')
+checkdepends=('python3')
+conflicts=('bitcoin')
+backup=('etc/bitcoin/bitcoin.conf')
+source=("https://bitcoinknots.org/files/29.x/$pkgver/bitcoin-$pkgver.tar.gz")
+sha256sums=('668150b2b35290815d4a48b0317eb85275ad8d566efa0fbae0057b3a3b427012')
+validpgpkeys=(
+	'DAED928C727D3E613EC46635F5073C4F4882FFFC' # Léo haf <leo@haf.ovh>
+)
+
+build() {
+	cd "bitcoin-$pkgver"
+	cmake -B build
+	cmake --build build -j "$(nproc)"
+}
+
+check() {
+	cd "bitcoin-$pkgver"
+	ctest --test-dir build
+	python3 build/test/functional/test_runner.py -j 60
+}
+
+package() {
+	cd "bitcoin-$pkgver"
+	cmake --install build --prefix "${pkgdir}"
+	install -DTm644 "share/examples/bitcoin.conf" "${pkgdir}/etc/bitcoin/bitcoin.conf"
+}
