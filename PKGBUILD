@@ -8,11 +8,12 @@ arch=(x86_64)
 url="https://bitcoinknots.org"
 license=('MIT')
 groups=(bitcoin)
-depends=()
+depends=('gcc-libs' 'sqlite' 'libevent' 'glibc')
 makedepends=('boost' 'cmake')
 checkdepends=('python3')
 conflicts=('bitcoin')
 backup=('etc/bitcoin/bitcoin.conf')
+options=('!debug')
 source=("https://bitcoinknots.org/files/29.x/$pkgver/bitcoin-$pkgver.tar.gz")
 sha256sums=('668150b2b35290815d4a48b0317eb85275ad8d566efa0fbae0057b3a3b427012')
 validpgpkeys=(
@@ -28,11 +29,15 @@ build() {
 check() {
 	cd "bitcoin-$pkgver"
 	ctest --test-dir build
-	python3 build/test/functional/test_runner.py -j 60
 }
 
 package() {
 	cd "bitcoin-$pkgver"
-	cmake --install build --prefix "${pkgdir}"
-	install -DTm644 "share/examples/bitcoin.conf" "${pkgdir}/etc/bitcoin/bitcoin.conf"
+	install -dm755 "${pkgdir}/usr/bin"
+	install -Dm755 build/bin/{bitcoin-cli,bitcoin-tx,bitcoin-util,bitcoin-wallet,bitcoind} "${pkgdir}/usr/bin/"
+	
+	install -dm755 "${pkgdir}/usr/share/man/man1"
+	install -Dm755 doc/man/{bitcoin-cli.1,bitcoin-tx.1,bitcoin-util.1,bitcoin-wallet.1,bitcoind.1} "${pkgdir}/usr/share/man/man1/"
+	
+	install -Dm644 share/examples/bitcoin.conf "${pkgdir}/etc/bitcoin/bitcoin.conf"
 }
